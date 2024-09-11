@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conversor de Imagens</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #e8f5e9; /* Verde claro */
+            color: #004d40; /* Verde escuro */
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            margin-top: 50px;
+            padding: 20px;
+            background-color: #a5d6a7; /* Verde médio */
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            display: inline-block;
+        }
+        #upload-area {
+            border: 2px dashed #004d40;
+            padding: 40px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            background-color: #c8e6c9; /* Verde claro */
+        }
+        #upload-area.dragover {
+            background-color: #80cbc4; /* Verde mais escuro quando arrastando */
+        }
+        #file-input {
+            display: none;
+        }
+        select, button {
+            padding: 10px 20px;
+            margin: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #004d40;
+            color: #ffffff;
+            cursor: pointer;
+        }
+        button:hover, select:hover {
+            background-color: #00695c; /* Verde escuro */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Conversor de Imagens</h1>
+        <input type="file" id="file-input" accept="image/*">
+        <form id="convert-form" action="/convert" method="post" enctype="multipart/form-data">
+            <!-- Vamos usar JavaScript para anexar a imagem ao formulário -->
+            <input type="hidden" name="file" id="file-data">
+            <label for="format">Escolha primeiro o formato de conversão:</label>
+            <select name="format" required>
+                <option value="jpeg">JPEG</option>
+                <option value="png">PNG</option>
+                <option value="gif">GIF</option>
+                <option value="webp">WEBP</option>
+                <option value="bmp">BMP</option>
+                <option value="tiff">TIFF</option>
+                <option value="ico">ICO</option>
+                <option value="svg">SVG</option>
+                <option value="heic">HEIC</option>
+                <option value="heif">HEIF</option>
+                <option value="jfif">JFIF</option>
+                <option value="jp2">JP2 (JPEG 2000)</option>
+                <option value="j2k">J2K (JPEG 2000)</option>
+                <option value="jpf">JPF (JPEG 2000)</option>
+                <option value="jpx">JPX (JPEG 2000)</option>
+                <option value="jpm">JPM (JPEG 2000)</option>
+                <option value="pbm">PBM (Portable Bitmap)</option>
+                <option value="pgm">PGM (Portable Graymap)</option>
+                <option value="ppm">PPM (Portable Pixmap)</option>
+                <option value="pnm">PNM (Portable Anymap)</option>
+                <option value="xbm">XBM (X11 Bitmap)</option>
+                <option value="xpm">XPM (X PixMap)</option>
+                <option value="dds">DDS (DirectDraw Surface)</option>
+                <option value="hdr">HDR (High Dynamic Range)</option>
+                <option value="exr">EXR (OpenEXR)</option>
+                <option value="tga">TGA (Truevision TARGA)</option>
+                <option value="avif">AVIF (AV1 Image File Format)</option>
+            </select>
+            <!--<button type="submit">Converter e Baixar</button>-->
+        </form>
+        <div id="upload-area">Agora <b>arraste</b> a sua imagem aqui ou <b>clique</b> para selecionar</div>
+
+    </div>
+    <script>
+        const uploadArea = document.getElementById('upload-area');
+        const fileInput = document.getElementById('file-input');
+        const form = document.getElementById('convert-form');
+
+        // Clique no input de arquivo quando o usuário clica no upload-area
+        uploadArea.addEventListener('click', () => fileInput.click());
+
+        // Quando o arquivo é arrastado sobre a área
+        uploadArea.addEventListener('dragover', (event) => {
+            event.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        // Quando o arquivo sai da área de upload
+        uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
+
+        // Quando o arquivo é solto na área de upload
+        uploadArea.addEventListener('drop', (event) => {
+            event.preventDefault();
+            uploadArea.classList.remove('dragover');
+            handleFiles(event.dataTransfer.files);
+        });
+
+        // Quando o arquivo é selecionado por meio do input
+        fileInput.addEventListener('change', () => handleFiles(fileInput.files));
+
+        function handleFiles(files) {
+            if (files.length > 0) {
+                const file = files[0];
+
+                // Criar um objeto de dados de formulário
+                const formData = new FormData(form);
+                formData.append('file', file);
+
+                // Criar uma requisição XMLHttpRequest para enviar o formulário
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', '/convert', true);
+
+                xhr.onload = function () {
+                    if (xhr.status === 200) {
+                        // Criação de um link de download
+                        const a = document.createElement('a');
+                        a.href = window.URL.createObjectURL(new Blob([xhr.response], { type: xhr.getResponseHeader('Content-Type') }));
+                        a.download = 'converted_image.' + form.querySelector('select[name="format"]').value;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                    } else {
+                        alert('Ocorreu um erro ao converter a imagem.');
+                    }
+                };
+                
+                xhr.responseType = 'blob';
+                xhr.send(formData);
+            }
+        }
+    </script>
+</body>
+</html>

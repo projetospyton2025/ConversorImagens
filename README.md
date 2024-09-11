@@ -1,2 +1,2 @@
 # ConversorImagens
-Converte imagens de qualquer formato para o formato que for escolhido - obs: o download acontece de forma automática.
+Este repositório tem o objetivo de converter imagens de vários formatos para o formato que o usuário escolher. Foi feito em python.
